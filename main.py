@@ -1,46 +1,58 @@
 import customtkinter as ctk
 from src.database import DatabaseManager
 from src.gui_login import LoginFrame
+from PIL import Image, ImageTk
+import os
 
 class ProgressionObsessionApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        self.title("Progression Obsession - Professional Build")
+        # 1. Nome do Jogo
+        self.title("Progression Obsession")
         self.geometry("1100x700")
         self.resizable(False, False)
 
-        # Init Database
+        # 2. Carregamento do Ícone (icongame-incremental.jpg)
+        assets_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
+        icon_path = os.path.join(assets_path, "icongame-incremental.jpg")
+        
+        if os.path.exists(icon_path):
+            try:
+                img = Image.open(icon_path)
+                self.app_icon = ImageTk.PhotoImage(img) 
+                # Força a atualização do ícone na janela e barra de tarefas
+                self.after(200, lambda: self.iconphoto(False, self.app_icon))
+            except Exception as e:
+                print(f"System: Icon error - {e}")
+
         self.db = DatabaseManager()
         self.user_session = None
-
-        # Container for screens
-        self.container = ctk.CTkFrame(self, fg_color="transparent")
-        self.container.pack(fill="both", expand=True)
 
         self.show_login()
 
     def show_login(self):
-        # Create the login frame and pass handle_login as callback
-        self.login_view = LoginFrame(self.container, self.handle_login)
-        self.login_view.pack(fill="both", expand=True)
+        for widget in self.winfo_children():
+            widget.destroy()
+        
+        # Interface de login direta na raiz
+        self.login_interface = LoginFrame(self, self.handle_login, self.handle_registration)
 
     def handle_login(self, email, password):
-        # Use the database manager to authenticate
         auth_result = self.db.authenticate(email, password)
-        
-        if isinstance(auth_result, tuple): # Success (returns user row)
+        if auth_result:
             self.user_session = auth_result
-            print(f"System: Access granted to {email}")
-            self.login_view.destroy()
             self.show_main_game()
-        else:
-            print("System: Authentication failed.")
+
+    def handle_registration(self, email, password, confirm_password):
+        register_result = self.db.register_user(email, password, confirm_password)
+        if isinstance(register_result, tuple):
+            self.show_login()
 
     def show_main_game(self):
-        # We will implement gui_game.py in the next session
-        print(f"Loading Game UI for {self.user_session[1]}...")
-        label = ctk.CTkLabel(self.container, text="DOPAMINE LOADING...", font=("Consolas", 60))
+        for widget in self.winfo_children():
+            widget.destroy()
+        label = ctk.CTkLabel(self, text="DOPAMINE LOADING...", font=("Consolas", 60), text_color="#D4AF37")
         label.place(relx=0.5, rely=0.5, anchor="center")
 
 if __name__ == "__main__":
