@@ -8,12 +8,10 @@ class ProgressionObsessionApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        # 1. Nome do Jogo
         self.title("Progression Obsession")
         self.geometry("1100x700")
         self.resizable(False, False)
 
-        # 2. Carregamento do Ícone (icongame-incremental.jpg)
         assets_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
         icon_path = os.path.join(assets_path, "icongame-incremental.jpg")
         
@@ -21,21 +19,17 @@ class ProgressionObsessionApp(ctk.CTk):
             try:
                 img = Image.open(icon_path)
                 self.app_icon = ImageTk.PhotoImage(img) 
-                # Força a atualização do ícone na janela e barra de tarefas
                 self.after(200, lambda: self.iconphoto(False, self.app_icon))
             except Exception as e:
                 print(f"System: Icon error - {e}")
 
         self.db = DatabaseManager()
         self.user_session = None
-
         self.show_login()
 
     def show_login(self):
         for widget in self.winfo_children():
             widget.destroy()
-        
-        # Interface de login direta na raiz
         self.login_interface = LoginFrame(self, self.handle_login, self.handle_registration)
 
     def handle_login(self, email, password):
